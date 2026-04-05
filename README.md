@@ -244,4 +244,4 @@ All data lives in IndexedDB under the `ByteDocDB` database (Dexie schema v2).
 
 ## License
 
-Private — all rights reserved.
+MIT — see [LICENSE](LICENSE).
