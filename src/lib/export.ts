@@ -408,6 +408,7 @@ function sectionToDocxChildren(
   const heading = new Paragraph({
     heading: headingLevel,
     children: [new TextRun({ text: `${node.number}  ${node.section.title}` })],
+    spacing: { after: 240 },
   });
 
   const contentBlocks: (Paragraph | Table)[] = [];
@@ -950,7 +951,7 @@ export async function exportToDocx(
 
   if (t.includeToc) {
     pushFrontmatter(
-      new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: 'Table of Contents' })] }),
+      new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: 'Table of Contents' })], spacing: { after: 240 } }),
       new TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-6' }),
     );
   }
