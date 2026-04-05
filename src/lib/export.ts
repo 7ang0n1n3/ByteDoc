@@ -574,7 +574,7 @@ const NO_BORDERS = { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: 
 function titlePageChildren(doc: ByteDocument, template: DocxTemplate): (Paragraph | Table)[] {
   const logoRun = buildLogoRun(template);
   const content = titleContentParagraphs(doc, template, logoRun).filter(Boolean) as Paragraph[];
-  return [...content, new Paragraph({ children: [new PageBreak()] })];
+  return content;
 }
 
 // ─── Color-bar title page section ────────────────────────────────────────────
@@ -661,7 +661,7 @@ function buildColorBarTitlePageSection(
       },
     },
     headers: { default: new Header({ children: headerChildren }) },
-    children: [titleTable, new Paragraph({ children: [new PageBreak()] })],
+    children: [titleTable],
   };
 }
 
@@ -714,7 +714,6 @@ function changelogTable(changelog: ChangelogEntry[], template: DocxTemplate): (P
         insideVertical:   { style: BorderStyle.SINGLE, size: 2, color: borderColor },
       },
     }),
-    new Paragraph({ children: [new PageBreak()] }),
   ];
 }
 
@@ -777,7 +776,6 @@ function figureListSection(figureNumbers: Map<string, number>, flatNodes: Sectio
           spacing: { before: 80 },
         })
     ),
-    new Paragraph({ children: [new PageBreak()] }),
   ];
 }
 
@@ -808,7 +806,6 @@ function tableListSection(tableNumbers: Map<string, number>, flatNodes: SectionN
           spacing: { before: 80 },
         })
     ),
-    new Paragraph({ children: [new PageBreak()] }),
   ];
 }
 
@@ -940,28 +937,34 @@ export async function exportToDocx(
   // Title page is excluded here when colorBarEnabled — it goes in its own zero-margin section.
   const frontmatterChildren: (Paragraph | Table)[] = [];
 
+  const pushFrontmatter = (...items: (Paragraph | Table)[]) => {
+    if (frontmatterChildren.length > 0) {
+      frontmatterChildren.push(new Paragraph({ children: [new PageBreak()] }));
+    }
+    frontmatterChildren.push(...items);
+  };
+
   if (t.includeTitlePage && !t.colorBarEnabled) {
     frontmatterChildren.push(...titlePageChildren(docMeta, t));
   }
 
   if (t.includeToc) {
-    frontmatterChildren.push(
+    pushFrontmatter(
       new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: 'Table of Contents' })] }),
       new TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-6' }),
-      new Paragraph({ children: [new PageBreak()] })
     );
   }
 
   if (t.includeChangelog && changelog.length > 0) {
-    frontmatterChildren.push(...changelogTable(changelog, t));
+    pushFrontmatter(...changelogTable(changelog, t));
   }
 
   if (t.includeListOfFigures && hasFigures) {
-    frontmatterChildren.push(...figureListSection(figureNumbers, flatNodes));
+    pushFrontmatter(...figureListSection(figureNumbers, flatNodes));
   }
 
   if (t.includeListOfTables && hasTables) {
-    frontmatterChildren.push(...tableListSection(tableNumbers, flatNodes));
+    pushFrontmatter(...tableListSection(tableNumbers, flatNodes));
   }
 
   // ── Assemble DOCX sections ──────────────────────────────────────────────────
