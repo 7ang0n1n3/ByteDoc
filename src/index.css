@@ -1,0 +1,243 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  * { box-sizing: border-box; }
+  html { font-family: 'Inter', system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+}
+
+/* ── Light mode overrides ────────────────────────────────────────────────── */
+html.light ::-webkit-scrollbar-thumb { background: #d1d5db; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Surface backgrounds — pure white base, barely-there tints for chrome */
+html.light .bg-surface-950 { background-color: #f9fafb !important; }
+html.light .bg-surface-900 { background-color: #ffffff !important; }
+html.light .bg-surface-850 { background-color: #f3f4f6 !important; }
+html.light .bg-surface-800 { background-color: #f9fafb !important; }
+
+/* Zinc backgrounds — keep inputs/cards white, use light grey only for chrome */
+html.light .bg-zinc-900    { background-color: #ffffff !important; }
+html.light .bg-zinc-800    { background-color: #f3f4f6 !important; }
+html.light .bg-zinc-700    { background-color: #e5e7eb !important; }
+html.light .bg-zinc-600    { background-color: #d1d5db !important; }
+
+/* Zinc background with opacity */
+html.light .bg-zinc-900\/30 { background-color: rgb(243 244 246 / 0.6) !important; }
+
+/* Hover backgrounds */
+html.light .hover\:bg-zinc-900:hover { background-color: #f9fafb !important; }
+html.light .hover\:bg-zinc-800:hover { background-color: #f3f4f6 !important; }
+html.light .hover\:bg-zinc-700:hover { background-color: #e5e7eb !important; }
+html.light .hover\:bg-zinc-600:hover { background-color: #d1d5db !important; }
+
+/* Text colors */
+html.light .text-zinc-100 { color: #111827 !important; }
+html.light .text-zinc-200 { color: #1f2937 !important; }
+html.light .text-zinc-300 { color: #374151 !important; }
+html.light .text-zinc-400 { color: #6b7280 !important; }
+html.light .text-zinc-500 { color: #9ca3af !important; }
+html.light .text-zinc-600 { color: #d1d5db !important; }
+
+/* Hover text */
+html.light .hover\:text-zinc-200:hover { color: #1f2937 !important; }
+html.light .hover\:text-zinc-100:hover { color: #111827 !important; }
+
+/* Border colors */
+html.light .border-zinc-800 { border-color: #e5e7eb !important; }
+html.light .border-zinc-700 { border-color: #d1d5db !important; }
+html.light .border-zinc-600 { border-color: #9ca3af !important; }
+
+/* Body background */
+html.light body { background-color: #f9fafb !important; color: #111827 !important; }
+
+/* Placeholder text */
+html.light .placeholder\:text-zinc-600::placeholder { color: #9ca3af !important; }
+
+/* ── Light mode: ProseMirror editor ─────────────────────────────────────── */
+html.light .ProseMirror {
+  color: #1e293b;
+}
+html.light .ProseMirror h1,
+html.light .ProseMirror h2 { color: #0f172a; }
+html.light .ProseMirror h3,
+html.light .ProseMirror h4,
+html.light .ProseMirror h5,
+html.light .ProseMirror h6 { color: #1e293b; }
+
+html.light .ProseMirror code {
+  background-color: #f3f4f6;
+  color: #4f46e5;
+}
+html.light .ProseMirror pre {
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+}
+html.light .ProseMirror pre code {
+  background-color: transparent;
+  color: #1f2937;
+}
+html.light .ProseMirror blockquote {
+  border-left-color: #a5b4fc;
+  color: #6b7280;
+}
+html.light .ProseMirror th {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border-color: #d1d5db;
+}
+html.light .ProseMirror td {
+  border-color: #e5e7eb;
+  color: #374151;
+}
+html.light .ProseMirror tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+html.light .ProseMirror hr {
+  border-top-color: #e5e7eb;
+}
+html.light .ProseMirror .is-editor-empty:first-child::before,
+html.light .ProseMirror .is-empty::before {
+  color: #94a3b8;
+}
+html.light .ProseMirror *::selection {
+  background-color: rgb(99 102 241 / 0.25);
+}
+
+html.light .ProseMirror div[data-type="page-break"]::after {
+  background: #f9fafb;
+}
+
+/* ── TipTap Editor Prose ────────────────────────────────────────────────── */
+.ProseMirror {
+  color: theme('colors.zinc.200');
+  line-height: 1.75;
+  min-height: 200px;
+}
+
+.ProseMirror p { margin: 0 0 0.75em; }
+.ProseMirror h1 { @apply text-2xl font-bold text-zinc-100 mt-8 mb-3; }
+.ProseMirror h2 { @apply text-xl font-semibold text-zinc-100 mt-6 mb-2; }
+.ProseMirror h3 { @apply text-lg font-semibold text-zinc-200 mt-5 mb-2; }
+.ProseMirror h4 { @apply text-base font-semibold text-zinc-200 mt-4 mb-1; }
+.ProseMirror h5, .ProseMirror h6 { @apply text-sm font-semibold text-zinc-300 mt-3 mb-1; }
+
+.ProseMirror ul { @apply list-disc pl-6 mb-3 space-y-1; }
+.ProseMirror ol { @apply list-decimal pl-6 mb-3 space-y-1; }
+.ProseMirror li p { @apply m-0; }
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-accent/40 pl-4 italic text-zinc-400 my-3;
+}
+
+.ProseMirror code {
+  @apply bg-zinc-800 text-indigo-300 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.ProseMirror pre {
+  @apply bg-zinc-900 border border-zinc-700 rounded-lg p-4 my-3 overflow-x-auto;
+}
+.ProseMirror pre code {
+  @apply bg-transparent p-0 text-zinc-200;
+}
+
+.ProseMirror a { @apply text-accent underline hover:text-accent-hover; }
+
+.ProseMirror hr {
+  @apply border-none border-t border-zinc-700 my-6;
+}
+
+/* Tables */
+.ProseMirror table {
+  @apply w-full border-collapse my-3 text-sm;
+}
+.ProseMirror th {
+  @apply bg-zinc-800 text-zinc-200 font-semibold px-3 py-2 text-left border border-zinc-700;
+}
+.ProseMirror td {
+  @apply px-3 py-2 border border-zinc-800 text-zinc-300;
+}
+.ProseMirror tr:nth-child(even) td { @apply bg-zinc-900/30; }
+
+/* Task list */
+.ProseMirror ul[data-type="taskList"] { @apply list-none pl-2; }
+.ProseMirror ul[data-type="taskList"] li { @apply flex gap-2 items-start; }
+.ProseMirror ul[data-type="taskList"] li > label { @apply mt-0.5; }
+
+/* Citation & footnote nodes */
+.citation-ref {
+  @apply text-accent font-mono text-xs cursor-pointer hover:underline;
+  vertical-align: super;
+  font-size: 0.75em;
+}
+.footnote-ref {
+  @apply text-zinc-400 font-mono text-xs cursor-help;
+  vertical-align: super;
+  font-size: 0.7em;
+}
+
+/* Caption styles */
+p[data-figure-caption],
+p[data-table-caption] {
+  @apply text-zinc-500 italic text-sm text-center my-1;
+}
+p[data-figure-caption]::before { content: 'Figure '; }
+p[data-table-caption]::before  { content: 'Table '; }
+
+/* Page break widget */
+.ProseMirror div[data-type="page-break"] {
+  position: relative;
+  margin: 1.25rem 0;
+  height: 1.5rem;
+  pointer-events: none;
+  user-select: none;
+}
+.ProseMirror div[data-type="page-break"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed rgba(99, 102, 241, 0.5);
+}
+.ProseMirror div[data-type="page-break"]::after {
+  content: 'Page Break';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: theme('colors.surface.850', #181818);
+  padding: 0 0.5rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(99, 102, 241, 0.7);
+}
+/* Selected state */
+.ProseMirror div[data-type="page-break"].ProseMirror-selectednode::before {
+  border-top-color: rgba(99, 102, 241, 0.9);
+}
+.ProseMirror div[data-type="page-break"].ProseMirror-selectednode::after {
+  color: rgb(99, 102, 241);
+}
+
+/* Placeholder */
+.ProseMirror .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply float-left text-zinc-600 pointer-events-none h-0;
+}
+.ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  @apply float-left text-zinc-600 pointer-events-none h-0;
+}
+
+/* Selection */
+.ProseMirror *::selection { @apply bg-accent/30; }
