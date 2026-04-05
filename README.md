@@ -1,6 +1,6 @@
 # ByteDoc
 
-**Version 0.0.2**
+**Version 0.0.3**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 

@@ -4,6 +4,20 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.3] — 2026-04-05
+
+### Added
+
+- One blank line (12 pt spacing) after every section heading (H1–H6) on export
+- One blank line after the Table of Contents heading on export
+
+### Fixed
+
+- Blank page between title page and the following page — trailing `PageBreak` paragraphs at the end of front-matter blocks combined with DOCX section boundaries to produce an extra blank page; switched to a leading-break pattern so no block ends with a trailing page break
+- Each section now starts on a new page on export
+
+---
+
 ## [0.0.2] — 2026-04-05
 
 ### Changed
