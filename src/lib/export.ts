@@ -867,10 +867,13 @@ export async function exportToDocx(
   const normalSectionProps = { page: { size: pageSize, margin: pageMargins } };
   const bodySectionProps   = { page: { size: pageSize, margin: bodyMargins } };
 
-  // Build all body content
+  // Build all body content — every section starts on a new page
   const bodyChildren: (Paragraph | Table)[] = [];
-  for (const node of flatNodes) {
-    bodyChildren.push(...sectionToDocxChildren(node, figureNumbers, tableNumbers, t));
+  for (let i = 0; i < flatNodes.length; i++) {
+    if (i > 0) {
+      bodyChildren.push(new Paragraph({ children: [new PageBreak()] }));
+    }
+    bodyChildren.push(...sectionToDocxChildren(flatNodes[i], figureNumbers, tableNumbers, t));
   }
   bodyChildren.push(...referencesList(references));
 
