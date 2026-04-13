@@ -96,7 +96,9 @@ Initial release.
 
 ---
 
-## Unreleased
+## [0.0.4] — 2026-04-13
 
-- No pending changes.
+### Added
+
+- Double-click a document name in the sidebar to open its settings modal directly — works for both active and inactive documents
 

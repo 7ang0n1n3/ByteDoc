@@ -23,6 +23,13 @@ export function Sidebar() {
     await addSection('New Section', null);
   }
 
+  async function handleDocDoubleClick(docId: string) {
+    if (docId !== activeDocumentId) {
+      await openDocument(docId);
+    }
+    openModal('docSettings');
+  }
+
   return (
     <div className="flex flex-col h-full bg-surface-900 border-r border-zinc-800 w-64 shrink-0">
       {/* App header */}
@@ -63,6 +70,7 @@ export function Sidebar() {
               key={doc.id}
               type="button"
               onClick={() => openDocument(doc.id)}
+              onDoubleClick={() => handleDocDoubleClick(doc.id)}
               className={`w-full flex items-center gap-2 px-2 py-1 rounded text-left text-sm transition-colors ${
                 doc.id === activeDocumentId
                   ? 'bg-accent/20 text-zinc-100'

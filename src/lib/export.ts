@@ -417,7 +417,8 @@ function sectionToDocxChildren(
     contentBlocks.push(...convertNode(block, node.depth, figureNumbers, tableNumbers, template));
   }
 
-  return [heading, ...contentBlocks];
+  const trailingBlank = new Paragraph({ children: [new TextRun('')], spacing: { after: 240 } });
+  return [heading, ...contentBlocks, trailingBlank];
 }
 
 // ─── Page elements ────────────────────────────────────────────────────────────
@@ -865,10 +866,10 @@ export async function exportToDocx(
   const normalSectionProps = { page: { size: pageSize, margin: pageMargins } };
   const bodySectionProps   = { page: { size: pageSize, margin: bodyMargins } };
 
-  // Build all body content — every section starts on a new page
+  // Build all body content — only root sections (depth 0) start on a new page
   const bodyChildren: (Paragraph | Table)[] = [];
   for (let i = 0; i < flatNodes.length; i++) {
-    if (i > 0) {
+    if (i > 0 && flatNodes[i].depth === 0) {
       bodyChildren.push(new Paragraph({ children: [new PageBreak()] }));
     }
     bodyChildren.push(...sectionToDocxChildren(flatNodes[i], figureNumbers, tableNumbers, t));

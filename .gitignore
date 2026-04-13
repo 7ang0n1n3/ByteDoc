@@ -28,6 +28,8 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+*.cursor
+*.claude
 
 # OS
 .DS_Store

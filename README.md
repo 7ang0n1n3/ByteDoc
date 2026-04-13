@@ -1,6 +1,6 @@
 # ByteDoc
 
-**Version 0.0.3**
+**Version 0.0.4**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 
@@ -28,7 +28,7 @@ ByteDoc is designed for engineers and technical writers who need to produce poli
 ### Document Structure
 - **Sections** — nested tree of sections and sub-sections, drag-and-drop reorderable
 - **Auto-numbering** — section headings are automatically numbered (`1`, `1.1`, `1.1.2`, …)
-- **Multiple documents** — create and switch between independent documents
+- **Multiple documents** — create and switch between independent documents; double-click a document name in the sidebar to open its settings directly
 - **Document metadata** — title, subtitle, author, organisation, version, status (Draft / Review / Final), description/abstract
 
 ### Changelog
