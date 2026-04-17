@@ -4,6 +4,14 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.5] — 2026-04-18
+
+### Changed
+
+- Added the ByteDoc logo to the sidebar header and README
+
+---
+
 ## [0.0.3] — 2026-04-05
 
 ### Added
@@ -101,4 +109,3 @@ Initial release.
 ### Added
 
 - Double-click a document name in the sidebar to open its settings modal directly — works for both active and inactive documents
-
