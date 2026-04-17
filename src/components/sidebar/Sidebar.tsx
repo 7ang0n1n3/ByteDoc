@@ -4,6 +4,7 @@ import { Plus, FileText, Settings, ChevronLeft } from 'lucide-react';
 import { SectionTree } from './SectionTree';
 import { useDocumentStore } from '../../store/documentStore';
 import { useUIStore } from '../../store/uiStore';
+import byteDocLogo from '../../../bytedoc.png';
 
 export function Sidebar() {
   const activeDocument = useDocumentStore((s) => s.activeDocument);
@@ -35,7 +36,11 @@ export function Sidebar() {
       {/* App header */}
       <div className="flex items-center justify-between px-3 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-accent flex items-center justify-center text-white text-xs font-bold">B</div>
+          <img
+            src={byteDocLogo}
+            alt="ByteDoc logo"
+            className="h-6 w-6 rounded object-contain"
+          />
           <span className="text-sm font-semibold text-zinc-100">ByteDoc</span>
         </div>
         <button

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./bytedoc.png" alt="ByteDoc logo" width="96" />
+</p>
+
 # ByteDoc
 
 **Version 0.0.4**
