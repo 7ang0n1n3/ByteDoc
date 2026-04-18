@@ -30,6 +30,7 @@ pnpm-debug.log*
 *.sw?
 *.cursor
 *.claude
+*.codex
 
 # OS
 .DS_Store
