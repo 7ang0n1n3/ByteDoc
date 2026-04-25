@@ -11,8 +11,6 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Typography from '@tiptap/extension-typography';
@@ -26,6 +24,9 @@ import { FootnoteNode } from './Footnote';
 import { FigureCaptionNode } from './FigureCaption';
 import { TableCaptionNode } from './TableCaption';
 import { PageBreakNode } from './PageBreak';
+import { FontSizeExtension } from './FontSize';
+import { IndentExtension } from './Indent';
+import { StyledTableCell, StyledTableHeader } from './TableCellStyle';
 
 const lowlight = createLowlight(common);
 
@@ -36,6 +37,8 @@ export function buildExtensions() {
     }),
     Underline,
     TextStyle,
+    FontSizeExtension,
+    IndentExtension,
     Color,
     Highlight.configure({ multicolor: true }),
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -48,8 +51,8 @@ export function buildExtensions() {
     Image.configure({ inline: false, allowBase64: true }),
     Table.configure({ resizable: true }),
     TableRow,
-    TableHeader,
-    TableCell,
+    StyledTableHeader,
+    StyledTableCell,
     TaskList,
     TaskItem.configure({ nested: true }),
     Typography,

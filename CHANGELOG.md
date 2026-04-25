@@ -4,6 +4,31 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.7] — 2026-04-25
+
+### Added
+
+- Single Insert Table dialog for choosing row count, column count, and whether the first row is a header
+- Contextual table toolbar controls for adding/deleting rows and columns, deleting tables, and toggling header rows, columns, or cells
+- Table cell styling controls for background colour, foreground/text colour, line type, and clearing cell styles
+- DOCX export support for table cell colours and line styles
+
+### Changed
+
+- New tables no longer force the first row to be a header by default
+
+---
+
+## [0.0.6] — 2026-04-25
+
+### Added
+
+- Font-size selector in the editor toolbar for inline text sizing
+- Increase and decrease indent controls for paragraphs and headings
+- DOCX export support for editor-applied font sizes and paragraph/heading indentation
+
+---
+
 ## [0.0.5] — 2026-04-18
 
 ### Changed

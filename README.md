@@ -4,7 +4,7 @@
 
 # ByteDoc
 
-**Version 0.0.5**
+**Version 0.0.7**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 
@@ -19,9 +19,10 @@ ByteDoc is designed for engineers and technical writers who need to produce poli
 ## Features
 
 ### Editor
-- **Rich text editing** powered by TipTap — bold, italic, underline, strikethrough, subscript, superscript, highlight, text colour, links
+- **Rich text editing** powered by TipTap — bold, italic, underline, strikethrough, subscript, superscript, highlight, text colour, font size, links
 - **Block elements** — headings (H1–H4), paragraphs, bullet lists, ordered lists, blockquotes, code blocks, horizontal rules, images
-- **Tables** — full insert/edit support with styled header rows on export
+- **Paragraph controls** — align text left, centre, right, or justified; increase or decrease paragraph and heading indentation
+- **Tables** — insert tables from a single setup dialog with rows, columns, and optional header row; edit rows, columns, header cells, background colour, text colour, and line type from the toolbar
 - **Page break** — insert a hard page break anywhere in the content via the toolbar
 - **Citations** — inline `[n]` markers linked to a reference list
 - **Footnotes** — inline superscript markers with footnote text
@@ -56,6 +57,7 @@ ByteDoc is designed for engineers and technical writers who need to produce poli
   - **Title page logo** — upload an image (PNG, JPG, etc.) and position it upper-left, upper-right, or above the title
   - **Watermark** — stamp the document status (Draft / Review / Final) diagonally across every page at 64 pt; visibility adjustable from 1 (faint) to 100 (solid)
 - **Active template** — one template is marked active and used for every export; switchable from the template manager or the export dialog
+- **Inline and table formatting export** — editor font-size selections, paragraph/heading indentation, and table cell colours/line styles are preserved in generated DOCX files
 
 ### Interface
 - **Dark / light mode** — toggle in the top-right corner, persisted across sessions
@@ -192,9 +194,12 @@ src/
 ├── editor/
 │   ├── extensions/               # Custom TipTap extensions
 │   │   ├── Citation.ts
+│   │   ├── FontSize.ts
 │   │   ├── Footnote.ts
 │   │   ├── FigureCaption.ts
+│   │   ├── Indent.ts
 │   │   ├── TableCaption.ts
+│   │   ├── TableCellStyle.ts
 │   │   ├── PageBreak.ts
 │   │   └── index.ts
 │   └── Toolbar.tsx               # Editor toolbar component

@@ -56,6 +56,50 @@ interface RunOptions {
   highlight?: string;
   superScript?: boolean;
   subScript?: boolean;
+  size?: number;
+}
+
+function fontSizeToHalfPoints(fontSize: string): number | undefined {
+  const value = Number.parseFloat(fontSize);
+  if (!Number.isFinite(value) || value <= 0) return undefined;
+  if (fontSize.endsWith('px')) return Math.round(value * 1.5);
+  return Math.round(value * 2);
+}
+
+function colorToDocxHex(color?: string | null): string | undefined {
+  if (!color) return undefined;
+  if (color.startsWith('#')) return color.replace('#', '');
+  return undefined;
+}
+
+function indentFromAttrs(attrs: JSONContent['attrs']): { left?: number } | undefined {
+  const indent = Number((attrs as { indent?: number } | undefined)?.indent) || 0;
+  if (indent <= 0) return undefined;
+  return { left: convertInchesToTwip(indent * 0.25) };
+}
+
+function borderStyleFromCss(style?: string | null): (typeof BorderStyle)[keyof typeof BorderStyle] | undefined {
+  switch (style) {
+    case 'solid': return BorderStyle.SINGLE;
+    case 'dashed': return BorderStyle.DASHED;
+    case 'dotted': return BorderStyle.DOTTED;
+    case 'double': return BorderStyle.DOUBLE;
+    case 'none': return BorderStyle.NONE;
+    default: return undefined;
+  }
+}
+
+function cellBordersFromAttrs(attrs: JSONContent['attrs'], color: string) {
+  const style = borderStyleFromCss((attrs as { borderStyle?: string | null } | undefined)?.borderStyle);
+  if (!style) return undefined;
+
+  const border = { style, size: 4, color };
+  return {
+    top: border,
+    bottom: border,
+    left: border,
+    right: border,
+  };
 }
 
 function marksToOptions(marks: JSONContent['marks'] = []): RunOptions {
@@ -72,8 +116,11 @@ function marksToOptions(marks: JSONContent['marks'] = []): RunOptions {
       case 'subscript':   opts.subScript = true; break;
       case 'highlight': opts.highlight = (mark.attrs as { color?: string } | undefined)?.color ?? 'yellow'; break;
       case 'textStyle': {
-        const color = (mark.attrs as { color?: string } | undefined)?.color;
+        const attrs = mark.attrs as { color?: string; fontSize?: string } | undefined;
+        const color = attrs?.color;
+        const size = attrs?.fontSize ? fontSizeToHalfPoints(attrs.fontSize) : undefined;
         if (color) opts.color = color.replace('#', '');
+        if (size) opts.size = size;
         break;
       }
     }
@@ -93,6 +140,7 @@ function textNodeToRun(node: JSONContent, extraOpts: RunOptions = {}): TextRun {
     strike: opts.strike,
     font: opts.code ? 'Courier New' : undefined,
     color: opts.color,
+    size: opts.size,
     superScript: opts.superScript,
     subScript: opts.subScript,
     shading: opts.highlight
@@ -101,7 +149,11 @@ function textNodeToRun(node: JSONContent, extraOpts: RunOptions = {}): TextRun {
   });
 }
 
-function inlineToRuns(nodes: JSONContent[] = [], accentColor = '6366f1'): (TextRun | ExternalHyperlink)[] {
+function inlineToRuns(
+  nodes: JSONContent[] = [],
+  accentColor = '6366f1',
+  extraOpts: RunOptions = {}
+): (TextRun | ExternalHyperlink)[] {
   const runs: (TextRun | ExternalHyperlink)[] = [];
   for (const node of nodes) {
     if (node.type === 'text') {
@@ -111,11 +163,11 @@ function inlineToRuns(nodes: JSONContent[] = [], accentColor = '6366f1'): (TextR
         runs.push(
           new ExternalHyperlink({
             link: href,
-            children: [textNodeToRun(node, { color: accentColor, underline: { type: UnderlineType.SINGLE } })],
+            children: [textNodeToRun(node, { ...extraOpts, color: accentColor, underline: { type: UnderlineType.SINGLE } })],
           })
         );
       } else {
-        runs.push(textNodeToRun(node));
+        runs.push(textNodeToRun(node, extraOpts));
       }
     } else if (node.type === 'hardBreak') {
       runs.push(new TextRun({ break: 1 }));
@@ -138,7 +190,8 @@ function convertNode(
   figureNumbers: Map<string, number>,
   tableNumbers: Map<string, number>,
   template: DocxTemplate,
-  listLevel = 0
+  listLevel = 0,
+  extraRunOpts: RunOptions = {}
 ): (Paragraph | Table)[] {
   const result: (Paragraph | Table)[] = [];
   const content = node.content ?? [];
@@ -149,7 +202,8 @@ function convertNode(
       const align = (node.attrs as { textAlign?: string } | undefined)?.textAlign;
       result.push(new Paragraph({
         alignment: alignmentFromString(align),
-        children: inlineToRuns(content, accent),
+        indent: indentFromAttrs(node.attrs),
+        children: inlineToRuns(content, accent, extraRunOpts),
       }));
       break;
     }
@@ -166,7 +220,8 @@ function convertNode(
       ];
       result.push(new Paragraph({
         heading: headingLevels[Math.min(level - 1, 5)],
-        children: inlineToRuns(content, accent),
+        indent: indentFromAttrs(node.attrs),
+        children: inlineToRuns(content, accent, extraRunOpts),
       }));
       break;
     }
@@ -178,10 +233,10 @@ function convertNode(
           if (block.type === 'paragraph') {
             result.push(new Paragraph({
               bullet: { level: listLevel },
-              children: inlineToRuns(block.content ?? [], accent),
+              children: inlineToRuns(block.content ?? [], accent, extraRunOpts),
             }));
           } else {
-            result.push(...convertNode(block, sectionDepth, figureNumbers, tableNumbers, template, listLevel + 1));
+            result.push(...convertNode(block, sectionDepth, figureNumbers, tableNumbers, template, listLevel + 1, extraRunOpts));
           }
         }
       }
@@ -195,10 +250,10 @@ function convertNode(
           if (block.type === 'paragraph') {
             result.push(new Paragraph({
               numbering: { reference: 'ordered-list', level: listLevel },
-              children: inlineToRuns(block.content ?? [], accent),
+              children: inlineToRuns(block.content ?? [], accent, extraRunOpts),
             }));
           } else {
-            result.push(...convertNode(block, sectionDepth, figureNumbers, tableNumbers, template, listLevel + 1));
+            result.push(...convertNode(block, sectionDepth, figureNumbers, tableNumbers, template, listLevel + 1, extraRunOpts));
           }
         }
       }
@@ -212,14 +267,14 @@ function convertNode(
             indent: { left: convertInchesToTwip(0.5) },
             children: [
               new TextRun({ text: '', italics: true }),
-              ...inlineToRuns(child.content ?? [], accent).map((run) => {
+              ...inlineToRuns(child.content ?? [], accent, extraRunOpts).map((run) => {
                 if (run instanceof TextRun) return new TextRun({ ...run, italics: true });
                 return run;
               }),
             ],
           }));
         } else {
-          result.push(...convertNode(child, sectionDepth, figureNumbers, tableNumbers, template));
+          result.push(...convertNode(child, sectionDepth, figureNumbers, tableNumbers, template, listLevel, extraRunOpts));
         }
       }
       break;
@@ -278,15 +333,28 @@ function convertNode(
           const cellContent = cell.content ?? [];
           const cellParagraphs: Paragraph[] = [];
           for (const block of cellContent) {
-            const converted = convertNode(block, sectionDepth, figureNumbers, tableNumbers, template);
+            const cellAttrs = cell.attrs as { backgroundColor?: string | null; textColor?: string | null; borderStyle?: string | null } | undefined;
+            const cellTextColor = colorToDocxHex(cellAttrs?.textColor);
+            const converted = convertNode(
+              block,
+              sectionDepth,
+              figureNumbers,
+              tableNumbers,
+              template,
+              0,
+              cellTextColor ? { color: cellTextColor } : {}
+            );
             cellParagraphs.push(...(converted.filter((n) => n instanceof Paragraph) as Paragraph[]));
           }
           const isHeader = cell.type === 'tableHeader';
+          const cellAttrs = cell.attrs as { backgroundColor?: string | null; textColor?: string | null; borderStyle?: string | null } | undefined;
+          const cellFill = colorToDocxHex(cellAttrs?.backgroundColor);
           return new TableCell({
             children: cellParagraphs.length > 0 ? cellParagraphs : [new Paragraph({ children: [] })],
-            shading: isHeader
-              ? { type: ShadingType.CLEAR, fill: template.tableHeaderFill, color: 'auto' }
+            shading: cellFill || isHeader
+              ? { type: ShadingType.CLEAR, fill: cellFill ?? template.tableHeaderFill, color: 'auto' }
               : undefined,
+            borders: cellBordersFromAttrs(cell.attrs, borderColor),
           });
         });
         return new TableRow({ children: cells });
@@ -340,7 +408,7 @@ function convertNode(
     default:
       // Recurse on unknown block nodes
       for (const child of content) {
-        result.push(...convertNode(child, sectionDepth, figureNumbers, tableNumbers, template, listLevel));
+        result.push(...convertNode(child, sectionDepth, figureNumbers, tableNumbers, template, listLevel, extraRunOpts));
       }
   }
 
