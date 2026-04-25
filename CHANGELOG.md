@@ -4,6 +4,17 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.8] — 2026-04-25
+
+### Changed
+
+- Redesigned the editor toolbar into a two-level layout with application menus above grouped formatting controls
+- Moved Save and Export actions into the toolbar and removed duplicate header buttons from the document chrome
+- Added dropdowns for style, text colour, highlight colour, alignment, lists, and table-grid insertion
+- Restyled the toolbar to match ByteDoc's dark-first surface palette while preserving light-mode overrides
+
+---
+
 ## [0.0.7] — 2026-04-25
 
 ### Added

@@ -1,7 +1,7 @@
 // src/components/layout/AppShell.tsx
 import React, { useEffect } from 'react';
 import {
-  PanelLeft, Download, List, BookOpen, Clock, ImageIcon, Menu, Palette, Sun, Moon,
+  PanelLeft, List, BookOpen, Clock, ImageIcon, Menu, Sun, Moon,
 } from 'lucide-react';
 import { Sidebar } from '../sidebar/Sidebar';
 import { EditorArea } from '../../editor/EditorArea';
@@ -34,7 +34,6 @@ export function AppShell() {
   const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
   const setActivePanel = useUIStore((s) => s.setActivePanel);
   const setRightPanelOpen = useUIStore((s) => s.setRightPanelOpen);
-  const openModal = useUIStore((s) => s.openModal);
   const loadTemplates = useTemplateStore((s) => s.loadTemplates);
   const theme = useUIStore((s) => s.theme);
   const toggleTheme = useUIStore((s) => s.toggleTheme);
@@ -50,8 +49,6 @@ export function AppShell() {
       document.documentElement.classList.remove('light');
     }
   }, [theme]);
-
-  const showExport = !!activeDocument;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-surface-950">
@@ -88,25 +85,6 @@ export function AppShell() {
               )}
               <h1 className="text-sm font-semibold text-zinc-100 truncate">{activeDocument.title}</h1>
               <span className="text-xs text-zinc-600 shrink-0">v{activeDocument.version} · {activeDocument.status}</span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => openModal('templateSettings')}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-zinc-700 text-zinc-300 rounded hover:bg-zinc-600 transition-colors"
-                title="Manage export templates"
-              >
-                <Palette size={13} />
-                Templates
-              </button>
-              <button
-                type="button"
-                onClick={() => openModal('export')}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-accent text-white rounded hover:bg-accent-hover transition-colors"
-              >
-                <Download size={13} />
-                Export DOCX
-              </button>
             </div>
           </div>
         )}

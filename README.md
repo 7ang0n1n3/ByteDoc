@@ -4,7 +4,7 @@
 
 # ByteDoc
 
-**Version 0.0.7**
+**Version 0.0.8**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 
@@ -61,6 +61,8 @@ ByteDoc is designed for engineers and technical writers who need to produce poli
 
 ### Interface
 - **Dark / light mode** — toggle in the top-right corner, persisted across sessions
+- **Two-level sticky toolbar** — application menus (`File`, `Edit`, `Insert`, `Format`, `Table`, `Tools`, `View`) sit above grouped formatting controls with style, colour, alignment, list, insert, table grid, undo, and redo tools
+- **Context-aware table toolbar** — table row/column, header, colour, and line controls appear only while editing inside a table
 - **Offline-first** — all documents, sections, references, changelog entries, and templates are stored in IndexedDB via Dexie; nothing leaves the browser
 
 ---
