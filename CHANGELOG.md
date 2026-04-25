@@ -4,6 +4,29 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.11] — 2026-04-26
+
+### Fixed
+
+- DOCX export now preserves selected text colours and custom highlight colours instead of forcing highlights to yellow
+- Colour-only text no longer gains underline formatting during DOCX export
+- Custom colour picker hue dragging now updates the preview consistently and avoids hue wraparound at the slider edge
+
+### Changed
+
+- Reduced the custom colour picker size and made the saturation/brightness area render as a true gradient
+
+---
+
+## [0.0.10] — 2026-04-26
+
+### Changed
+
+- Reworked text colour and highlight dropdowns into menu-style palettes with automatic/reset actions, standard colour rows, recent colours, and custom colour picking
+- Fixed palette swatch layout so colour buttons keep stable spacing and do not overlap
+
+---
+
 ## [0.0.9] — 2026-04-26
 
 ### Changed

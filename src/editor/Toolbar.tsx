@@ -24,9 +24,68 @@ const FONT_SIZES = ['', '10pt', '11pt', '12pt', '14pt', '16pt', '18pt', '24pt', 
 const BORDER_STYLES = ['', 'solid', 'dashed', 'dotted', 'double', 'none'];
 const COLOR_SWATCHES = ['#111827', '#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#2563eb', '#7c3aed', '#db2777', '#f8fafc'];
 const HIGHLIGHT_SWATCHES = ['#fef08a', '#fed7aa', '#fecaca', '#bbf7d0', '#bfdbfe', '#ddd6fe', '#fbcfe8', '#e4e4e7'];
+const STANDARD_COLOR_ROWS = [
+  ['#000000', '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af', '#d1d5db', '#e5e7eb', '#f3f4f6', '#ffffff'],
+  ['#7f1d1d', '#991b1b', '#dc2626', '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981'],
+  ['#164e63', '#0891b2', '#0ea5e9', '#2563eb', '#4f46e5', '#7c3aed', '#9333ea', '#c026d3', '#db2777', '#e11d48'],
+  ['#fef9c3', '#fde68a', '#fed7aa', '#fecaca', '#fbcfe8', '#e9d5ff', '#ddd6fe', '#bfdbfe', '#bae6fd', '#bbf7d0'],
+  ['#78350f', '#92400e', '#9a3412', '#7f1d1d', '#831843', '#581c87', '#312e81', '#1e3a8a', '#164e63', '#14532d'],
+];
 
 function colorInputValue(value: string | null | undefined, fallback: string) {
   return /^#[0-9a-f]{6}$/i.test(value ?? '') ? value! : fallback;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function componentToHex(value: number) {
+  return Math.round(value).toString(16).padStart(2, '0');
+}
+
+function hsvToHex(hue: number, saturation: number, value: number) {
+  const h = ((hue % 360) + 360) % 360;
+  const s = clamp(saturation, 0, 100) / 100;
+  const v = clamp(value, 0, 100) / 100;
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+
+  if (h < 60) [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+
+  return `#${componentToHex((r + m) * 255)}${componentToHex((g + m) * 255)}${componentToHex((b + m) * 255)}`.toUpperCase();
+}
+
+function hexToHsv(hex: string) {
+  const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : 'ff4000';
+  const r = parseInt(normalized.slice(0, 2), 16) / 255;
+  const g = parseInt(normalized.slice(2, 4), 16) / 255;
+  const b = parseInt(normalized.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  let hue = 0;
+
+  if (delta !== 0) {
+    if (max === r) hue = 60 * (((g - b) / delta) % 6);
+    else if (max === g) hue = 60 * ((b - r) / delta + 2);
+    else hue = 60 * ((r - g) / delta + 4);
+  }
+
+  return {
+    hue: Math.round((hue + 360) % 360),
+    saturation: max === 0 ? 0 : Math.round((delta / max) * 100),
+    value: Math.round(max * 100),
+  };
 }
 
 function toolbarButtonClass(active?: boolean) {
@@ -105,6 +164,216 @@ function MenuButton({
   );
 }
 
+function ColorPaletteMenu({
+  title,
+  automaticLabel,
+  customLabel,
+  recentColors,
+  onAutomatic,
+  onSelect,
+  onCustom,
+}: {
+  title: string;
+  automaticLabel: string;
+  customLabel: string;
+  recentColors: string[];
+  onAutomatic: () => void;
+  onSelect: (color: string) => void;
+  onCustom: () => void;
+}) {
+  return (
+    <div className="w-64 space-y-2">
+      <div className="text-xs font-semibold text-zinc-200">{title}</div>
+      <button
+        type="button"
+        onClick={onAutomatic}
+        className="flex h-8 w-full items-center gap-2 rounded border border-zinc-700 px-2 text-left text-xs font-medium text-zinc-200 hover:bg-zinc-800"
+      >
+        <span className="h-3.5 w-3.5 rounded-sm border border-zinc-500 bg-transparent" />
+        {automaticLabel}
+      </button>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-xs font-semibold text-zinc-400">
+          <span>Standard</span>
+          <ChevronDown size={13} />
+        </div>
+        <div className="space-y-1">
+          {STANDARD_COLOR_ROWS.map((row, index) => (
+            <div key={index} className="grid grid-cols-10 gap-1">
+              {row.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => onSelect(color)}
+                  className="h-4 w-4 rounded-sm border border-zinc-700 hover:ring-1 hover:ring-zinc-100"
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {recentColors.length > 0 && (
+        <div className="space-y-1 border-t border-zinc-800 pt-2">
+          <div className="text-xs font-semibold text-zinc-400">Recent</div>
+          <div className="flex flex-wrap gap-1">
+            {recentColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => onSelect(color)}
+                className="h-4 w-4 rounded-sm border border-zinc-700 hover:ring-1 hover:ring-zinc-100"
+                style={{ backgroundColor: color }}
+                title={color}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onCustom}
+        className="flex h-8 w-full items-center gap-2 border-t border-zinc-800 pt-2 text-left text-xs font-semibold text-zinc-200 hover:text-zinc-100"
+      >
+        <Palette size={14} />
+        {customLabel}
+      </button>
+    </div>
+  );
+}
+
+function CustomColorPicker({
+  initialColor,
+  onCancel,
+  onSelect,
+}: {
+  initialColor: string;
+  onCancel: () => void;
+  onSelect: (color: string) => void;
+}) {
+  const initial = hexToHsv(initialColor);
+  const [hue, setHue] = useState(initial.hue);
+  const [saturation, setSaturation] = useState(initial.saturation);
+  const [value, setValue] = useState(initial.value);
+  const [hexInput, setHexInput] = useState(hsvToHex(initial.hue, initial.saturation, initial.value));
+  const [draggingHue, setDraggingHue] = useState(false);
+  const [draggingSv, setDraggingSv] = useState(false);
+  const color = hsvToHex(hue, saturation, value);
+  const pureHue = hsvToHex(hue, 100, 100);
+
+  useEffect(() => {
+    setHexInput(color);
+  }, [color]);
+
+  function updateSv(event: React.PointerEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setSaturation(clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100));
+    setValue(clamp(100 - ((event.clientY - rect.top) / rect.height) * 100, 0, 100));
+  }
+
+  function updateHue(event: React.PointerEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setHue(clamp(((event.clientY - rect.top) / rect.height) * 359, 0, 359));
+  }
+
+  function handleHexInput(value: string) {
+    const next = value.startsWith('#') ? value : `#${value}`;
+    setHexInput(next.toUpperCase());
+    if (/^#[0-9a-f]{6}$/i.test(next)) {
+      const hsv = hexToHsv(next);
+      setHue(hsv.hue);
+      setSaturation(hsv.saturation);
+      setValue(hsv.value);
+    }
+  }
+
+  return (
+    <div className="w-80 rounded-lg bg-zinc-950 text-zinc-100">
+      <div className="mb-3 grid grid-cols-3 items-center gap-2">
+        <button type="button" onClick={onCancel} className="justify-self-start rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-700">
+          Cancel
+        </button>
+        <div className="text-center text-sm font-semibold">Pick a Color</div>
+        <button type="button" onClick={() => onSelect(color)} className="justify-self-end rounded-md bg-zinc-300 px-2.5 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200">
+          Select
+        </button>
+      </div>
+
+      <div className="mb-3 flex items-center gap-3 pl-9">
+        <div className="h-8 w-20 rounded border border-zinc-800" style={{ backgroundColor: color }} />
+        <input
+          value={hexInput}
+          onChange={(event) => handleHexInput(event.target.value)}
+          className="h-8 w-40 rounded-lg border border-zinc-600 bg-zinc-800 px-3 text-sm font-semibold text-zinc-100 outline-none focus:border-accent"
+          aria-label="Hex color"
+        />
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          className="relative h-48 w-4 rounded-sm"
+          style={{ background: 'linear-gradient(to bottom, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' }}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setDraggingHue(true);
+            updateHue(event);
+          }}
+          onPointerMove={(event) => {
+            if (draggingHue) updateHue(event);
+          }}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            setDraggingHue(false);
+          }}
+          onPointerCancel={() => {
+            setDraggingHue(false);
+          }}
+          aria-label="Hue"
+        >
+          <span
+            className="absolute left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-zinc-100 shadow"
+            style={{ top: `${(hue / 359) * 100}%`, backgroundColor: pureHue }}
+          />
+        </button>
+
+        <button
+          type="button"
+          className="relative h-48 flex-1 rounded-sm border border-zinc-800"
+          style={{
+            background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), ${pureHue}`,
+          }}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setDraggingSv(true);
+            updateSv(event);
+          }}
+          onPointerMove={(event) => {
+            if (draggingSv) updateSv(event);
+          }}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            setDraggingSv(false);
+          }}
+          onPointerCancel={() => {
+            setDraggingSv(false);
+          }}
+          aria-label="Saturation and brightness"
+        >
+          <span
+            className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"
+            style={{ left: `${saturation}%`, top: `${100 - value}%` }}
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Toolbar({ editor }: ToolbarProps) {
   const [linkUrl, setLinkUrl] = useState('');
   const [showLinkInput, setShowLinkInput] = useState(false);
@@ -115,6 +384,9 @@ export function Toolbar({ editor }: ToolbarProps) {
   const [activeMenu, setActiveMenu] = useState<MenuName | null>(null);
   const [activePopover, setActivePopover] = useState<PopoverName>(null);
   const [gridHover, setGridHover] = useState({ rows: 0, cols: 0 });
+  const [recentTextColors, setRecentTextColors] = useState(COLOR_SWATCHES.slice(0, 8));
+  const [recentHighlightColors, setRecentHighlightColors] = useState(HIGHLIGHT_SWATCHES.slice(0, 8));
+  const [customColorTarget, setCustomColorTarget] = useState<'text' | 'highlight' | null>(null);
   const [, setEditorTick] = useState(0);
   const openModal = useUIStore((s) => s.openModal);
   const documentTransferActions = useDocumentTransferActions(() => editor?.getJSON() ?? {});
@@ -250,12 +522,21 @@ export function Toolbar({ editor }: ToolbarProps) {
 
   function togglePopover(name: Exclude<PopoverName, null>) {
     setActiveMenu(null);
+    setCustomColorTarget(null);
     setActivePopover((current) => current === name ? null : name);
   }
 
   function toggleMenu(name: MenuName) {
     setActivePopover(null);
+    setCustomColorTarget(null);
     setActiveMenu((current) => current === name ? null : name);
+  }
+
+  function rememberColor(
+    color: string,
+    setColors: React.Dispatch<React.SetStateAction<string[]>>,
+  ) {
+    setColors((colors) => [color, ...colors.filter((item) => item !== color)].slice(0, 10));
   }
 
   const currentFontSize = editor.getAttributes('textStyle').fontSize ?? '';
@@ -426,20 +707,36 @@ export function Toolbar({ editor }: ToolbarProps) {
               <ChevronDown size={12} />
             </ToolBtn>
             {activePopover === 'textColor' && (
-              <Popover className="grid grid-cols-5 gap-1">
-                {COLOR_SWATCHES.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => {
+              <Popover className="p-2">
+                {customColorTarget === 'text' ? (
+                  <CustomColorPicker
+                    initialColor={recentTextColors[0] ?? '#ff4000'}
+                    onCancel={() => setCustomColorTarget(null)}
+                    onSelect={(color) => {
                       editor.chain().focus().setColor(color).run();
+                      rememberColor(color, setRecentTextColors);
+                      setCustomColorTarget(null);
                       setActivePopover(null);
                     }}
-                    className="h-6 w-6 rounded border border-zinc-700"
-                    style={{ backgroundColor: color }}
-                    title={color}
                   />
-                ))}
+                ) : (
+                  <ColorPaletteMenu
+                    title="Font Color"
+                    automaticLabel="Automatic"
+                    customLabel="Custom Color..."
+                    recentColors={recentTextColors}
+                    onAutomatic={() => {
+                      editor.chain().focus().unsetColor().run();
+                      setActivePopover(null);
+                    }}
+                    onSelect={(color) => {
+                      editor.chain().focus().setColor(color).run();
+                      rememberColor(color, setRecentTextColors);
+                      setActivePopover(null);
+                    }}
+                    onCustom={() => setCustomColorTarget('text')}
+                  />
+                )}
               </Popover>
             )}
           </div>
@@ -449,20 +746,36 @@ export function Toolbar({ editor }: ToolbarProps) {
               <ChevronDown size={12} />
             </ToolBtn>
             {activePopover === 'highlight' && (
-              <Popover className="grid grid-cols-4 gap-1">
-                {HIGHLIGHT_SWATCHES.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => {
+              <Popover className="p-2">
+                {customColorTarget === 'highlight' ? (
+                  <CustomColorPicker
+                    initialColor={recentHighlightColors[0] ?? '#ff4000'}
+                    onCancel={() => setCustomColorTarget(null)}
+                    onSelect={(color) => {
                       editor.chain().focus().toggleHighlight({ color }).run();
+                      rememberColor(color, setRecentHighlightColors);
+                      setCustomColorTarget(null);
                       setActivePopover(null);
                     }}
-                    className="h-6 w-6 rounded border border-zinc-700"
-                    style={{ backgroundColor: color }}
-                    title={color}
                   />
-                ))}
+                ) : (
+                  <ColorPaletteMenu
+                    title="Highlight Color"
+                    automaticLabel="No Highlight"
+                    customLabel="Custom Highlight..."
+                    recentColors={recentHighlightColors}
+                    onAutomatic={() => {
+                      editor.chain().focus().unsetHighlight().run();
+                      setActivePopover(null);
+                    }}
+                    onSelect={(color) => {
+                      editor.chain().focus().toggleHighlight({ color }).run();
+                      rememberColor(color, setRecentHighlightColors);
+                      setActivePopover(null);
+                    }}
+                    onCustom={() => setCustomColorTarget('highlight')}
+                  />
+                )}
               </Popover>
             )}
           </div>

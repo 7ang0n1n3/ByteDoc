@@ -4,7 +4,7 @@
 
 # ByteDoc
 
-**Version 0.0.9**
+**Version 0.0.11**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 
@@ -57,11 +57,12 @@ ByteDoc is designed for engineers and technical writers who need to produce poli
   - **Title page logo** — upload an image (PNG, JPG, etc.) and position it upper-left, upper-right, or above the title
   - **Watermark** — stamp the document status (Draft / Review / Final) diagonally across every page at 64 pt; visibility adjustable from 1 (faint) to 100 (solid)
 - **Active template** — one template is marked active and used for every export; switchable from the template manager or the export dialog
-- **Inline and table formatting export** — editor font-size selections, paragraph/heading indentation, and table cell colours/line styles are preserved in generated DOCX files
+- **Inline and table formatting export** — editor font-size selections, paragraph/heading indentation, text colours, highlight colours, and table cell colours/line styles are preserved in generated DOCX files
 
 ### Interface
 - **Dark / light mode** — toggle in the top-right corner, persisted across sessions
 - **Two-level sticky toolbar** — application menus (`File`, `Edit`, `Insert`, `Format`, `Table`, `Tools`, `View`) sit above grouped formatting controls with style, colour, alignment, list, insert, table grid, undo, and redo tools
+- **Expanded colour palettes** — text colour and highlight menus include automatic/reset actions, a standard colour matrix, recent colours, and a compact custom picker with hue and saturation/brightness controls
 - **Import / export access from the empty state** — JSON import remains available before any documents exist, while JSON and DOCX export actions stay visible but disabled until a document is active
 - **Context-aware table toolbar** — table row/column, header, colour, and line controls appear only while editing inside a table
 - **Offline-first** — all documents, sections, references, changelog entries, and templates are stored in IndexedDB via Dexie; nothing leaves the browser

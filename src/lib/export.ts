@@ -68,7 +68,19 @@ function fontSizeToHalfPoints(fontSize: string): number | undefined {
 
 function colorToDocxHex(color?: string | null): string | undefined {
   if (!color) return undefined;
-  if (color.startsWith('#')) return color.replace('#', '');
+  const trimmed = color.trim();
+  const shortHex = trimmed.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+  if (shortHex) return `${shortHex[1]}${shortHex[1]}${shortHex[2]}${shortHex[2]}${shortHex[3]}${shortHex[3]}`.toUpperCase();
+
+  const fullHex = trimmed.match(/^#([0-9a-f]{6})$/i);
+  if (fullHex) return fullHex[1].toUpperCase();
+
+  const rgb = trimmed.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i);
+  if (rgb) {
+    const toHex = (value: string) => Math.min(255, Math.max(0, Number(value))).toString(16).padStart(2, '0');
+    return `${toHex(rgb[1])}${toHex(rgb[2])}${toHex(rgb[3])}`.toUpperCase();
+  }
+
   return undefined;
 }
 
@@ -114,12 +126,16 @@ function marksToOptions(marks: JSONContent['marks'] = []): RunOptions {
       case 'code':      opts.code = true; break;
       case 'superscript': opts.superScript = true; break;
       case 'subscript':   opts.subScript = true; break;
-      case 'highlight': opts.highlight = (mark.attrs as { color?: string } | undefined)?.color ?? 'yellow'; break;
+      case 'highlight': {
+        const fill = colorToDocxHex((mark.attrs as { color?: string } | undefined)?.color) ?? 'FFFF00';
+        opts.highlight = fill;
+        break;
+      }
       case 'textStyle': {
         const attrs = mark.attrs as { color?: string; fontSize?: string } | undefined;
-        const color = attrs?.color;
+        const color = colorToDocxHex(attrs?.color);
         const size = attrs?.fontSize ? fontSizeToHalfPoints(attrs.fontSize) : undefined;
-        if (color) opts.color = color.replace('#', '');
+        if (color) opts.color = color;
         if (size) opts.size = size;
         break;
       }
@@ -134,18 +150,16 @@ function textNodeToRun(node: JSONContent, extraOpts: RunOptions = {}): TextRun {
   const opts = { ...markOpts, ...extraOpts };
   return new TextRun({
     text,
-    bold: opts.bold,
-    italics: opts.italics,
-    underline: opts.underline,
-    strike: opts.strike,
-    font: opts.code ? 'Courier New' : undefined,
-    color: opts.color,
-    size: opts.size,
-    superScript: opts.superScript,
-    subScript: opts.subScript,
-    shading: opts.highlight
-      ? { type: ShadingType.CLEAR, fill: 'FFFF00', color: 'auto' }
-      : undefined,
+    ...(opts.bold ? { bold: true } : {}),
+    ...(opts.italics ? { italics: true } : {}),
+    ...(opts.underline ? { underline: opts.underline } : {}),
+    ...(opts.strike ? { strike: true } : {}),
+    ...(opts.code ? { font: 'Courier New' } : {}),
+    ...(opts.color ? { color: opts.color } : {}),
+    ...(opts.size ? { size: opts.size } : {}),
+    ...(opts.superScript ? { superScript: true } : {}),
+    ...(opts.subScript ? { subScript: true } : {}),
+    ...(opts.highlight ? { shading: { type: ShadingType.CLEAR, fill: opts.highlight, color: 'auto' } } : {}),
   });
 }
 
