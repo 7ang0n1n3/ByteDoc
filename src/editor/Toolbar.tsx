@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import {
   AlignCenter, AlignJustify, AlignLeft, AlignRight, BookOpen, CheckSquare, ChevronDown,
-  Code, Columns3, Download, Heading1, Heading2, Heading3, Highlighter, Image,
+  Code, Columns3, Heading1, Heading2, Heading3, Highlighter, Image,
   ImageIcon, IndentDecrease, IndentIncrease, Italic, Link2, Link2Off, List, ListOrdered,
-  Minus, PaintBucket, Palette, Plus, Quote, Redo2, Rows3, Save, SeparatorHorizontal,
+  Minus, PaintBucket, Palette, Plus, Quote, Redo2, Rows3, SeparatorHorizontal,
   Strikethrough, Subscript, Superscript, Table, TableIcon, Trash2, Type, Underline, Undo2,
   Bold, SquareDashedBottom,
 } from 'lucide-react';
 import { Modal } from '../components/modals/Modal';
-import { useDocumentStore } from '../store/documentStore';
+import { DocumentTransferActions, useDocumentTransferActions } from '../components/document/DocumentTransferActions';
 import { useUIStore } from '../store/uiStore';
 
 interface ToolbarProps {
@@ -116,9 +116,8 @@ export function Toolbar({ editor }: ToolbarProps) {
   const [activePopover, setActivePopover] = useState<PopoverName>(null);
   const [gridHover, setGridHover] = useState({ rows: 0, cols: 0 });
   const [, setEditorTick] = useState(0);
-  const activeSectionId = useDocumentStore((s) => s.activeSectionId);
-  const updateContent = useDocumentStore((s) => s.updateSectionContent);
   const openModal = useUIStore((s) => s.openModal);
+  const documentTransferActions = useDocumentTransferActions(() => editor?.getJSON() ?? {});
 
   useEffect(() => {
     if (!editor) return;
@@ -134,10 +133,6 @@ export function Toolbar({ editor }: ToolbarProps) {
   }, [editor]);
 
   if (!editor) return null;
-
-  function saveNow() {
-    if (activeSectionId) updateContent(activeSectionId, editor!.getJSON());
-  }
 
   function applyLink() {
     if (linkUrl) editor!.chain().focus().setLink({ href: linkUrl }).run();
@@ -272,8 +267,10 @@ export function Toolbar({ editor }: ToolbarProps) {
 
   const menuItems: Record<MenuName, { label: string; action: () => void }[]> = {
     file: [
-      { label: 'Save', action: saveNow },
+      { label: 'Export JSON', action: documentTransferActions.exportJson },
+      { label: 'Import JSON', action: documentTransferActions.importJson },
       { label: 'Export DOCX', action: () => openModal('export') },
+      { label: 'Templates', action: () => openModal('templateSettings') },
     ],
     edit: [
       { label: 'Undo', action: () => editor.chain().focus().undo().run() },
@@ -346,14 +343,7 @@ export function Toolbar({ editor }: ToolbarProps) {
             ))}
           </div>
           <div className="flex items-center gap-1">
-            <ToolBtn onClick={saveNow} title="Save">
-              <Save size={15} />
-              <span>Save</span>
-            </ToolBtn>
-            <ToolBtn onClick={() => openModal('export')} title="Export DOCX">
-              <Download size={15} />
-              <span>Export</span>
-            </ToolBtn>
+            <DocumentTransferActions compact actions={documentTransferActions} />
           </div>
         </div>
 

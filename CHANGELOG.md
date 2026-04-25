@@ -4,6 +4,16 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.9] — 2026-04-26
+
+### Changed
+
+- Reused the document transfer controls across the toolbar and the empty welcome state
+- Kept JSON import visible and usable when there are no documents yet
+- Kept JSON and DOCX export actions visible in the empty state, disabled until a document is active
+
+---
+
 ## [0.0.8] — 2026-04-25
 
 ### Changed

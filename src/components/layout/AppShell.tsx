@@ -13,6 +13,7 @@ import { DocumentSettingsModal } from '../modals/DocumentSettingsModal';
 import { ExportModal } from '../modals/ExportModal';
 import { ReferenceModal } from '../modals/ReferenceModal';
 import { TemplateSettingsModal } from '../modals/TemplateSettingsModal';
+import { DocumentTransferActions } from '../document/DocumentTransferActions';
 import { useDocumentStore } from '../../store/documentStore';
 import { useUIStore } from '../../store/uiStore';
 import { useTemplateStore } from '../../store/templateStore';
@@ -198,6 +199,9 @@ function WelcomeScreen() {
         >
           New Document
         </button>
+        <div className="flex justify-center pt-1">
+          <DocumentTransferActions />
+        </div>
       </div>
     </div>
   );
