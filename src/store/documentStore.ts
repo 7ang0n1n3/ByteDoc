@@ -4,10 +4,21 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
 import { db } from '../db';
 import type { ByteDocument, Section, ChangelogEntry, DocumentId, SectionId } from '../types/document';
-import type { Reference } from '../types/reference';
+import type { FootnoteData, Reference } from '../types/reference';
 import type { JSONContent } from '@tiptap/core';
-import { buildSectionTree, buildNumberMap, extractCaptions } from '../lib/numbering';
+import { buildNumberMapFromTree, buildSectionTree, extractCaptionsFromTree } from '../lib/numbering';
 import type { SectionNode, CaptionEntry } from '../types/computed';
+
+export interface ByteDocJsonBackup {
+  schema: 'bytedoc.document';
+  version: 1;
+  exportedAt: number;
+  document: ByteDocument;
+  sections: Section[];
+  references: Reference[];
+  changelog: ChangelogEntry[];
+  footnotes: FootnoteData[];
+}
 
 interface DocumentState {
   // Document list
@@ -35,6 +46,8 @@ interface DocumentState {
   openDocument: (id: DocumentId) => Promise<void>;
   updateDocumentMeta: (updates: Partial<ByteDocument>) => Promise<void>;
   deleteDocument: (id: DocumentId) => Promise<void>;
+  exportActiveDocumentJson: (currentSectionContent?: JSONContent) => Promise<ByteDocJsonBackup | null>;
+  importDocumentJson: (backup: unknown) => Promise<DocumentId>;
 
   // Actions — sections
   addSection: (title: string, parentId?: SectionId | null) => Promise<SectionId>;
@@ -56,8 +69,8 @@ interface DocumentState {
 
 function recomputeDerived(sections: Section[]) {
   const sectionTree = buildSectionTree(sections);
-  const sectionNumberMap = buildNumberMap(sections);
-  const { figures, tables } = extractCaptions(sections, sectionNumberMap);
+  const sectionNumberMap = buildNumberMapFromTree(sectionTree);
+  const { figures, tables } = extractCaptionsFromTree(sectionTree);
   return { sectionTree, sectionNumberMap, figures, tables };
 }
 
@@ -163,6 +176,106 @@ export const useDocumentStore = create<DocumentState>()(
       }
     },
 
+    exportActiveDocumentJson: async (currentSectionContent?: JSONContent) => {
+      const { activeDocument, activeSectionId, sections, references, changelog } = get();
+      if (!activeDocument) return null;
+
+      let exportedSections = sections;
+      if (activeSectionId && currentSectionContent) {
+        const section = sections.find((s) => s.id === activeSectionId);
+        if (section) {
+          const updated = { ...section, content: currentSectionContent, updatedAt: Date.now() };
+          await db.sections.put(updated);
+          exportedSections = sections.map((s) => (s.id === activeSectionId ? updated : s));
+          set({ sections: exportedSections, ...recomputeDerived(exportedSections) });
+        }
+      }
+
+      const footnotes = await db.footnotes.where('documentId').equals(activeDocument.id).toArray();
+      return {
+        schema: 'bytedoc.document',
+        version: 1,
+        exportedAt: Date.now(),
+        document: activeDocument,
+        sections: [...exportedSections].sort((a, b) => a.order - b.order),
+        references: [...references].sort((a, b) => a.order - b.order),
+        changelog: [...changelog].sort((a, b) => a.order - b.order),
+        footnotes: [...footnotes].sort((a, b) => a.order - b.order),
+      };
+    },
+
+    importDocumentJson: async (backup: unknown) => {
+      const parsed = backup as Partial<ByteDocJsonBackup>;
+      if (
+        parsed.schema !== 'bytedoc.document' ||
+        parsed.version !== 1 ||
+        !parsed.document ||
+        !Array.isArray(parsed.sections) ||
+        !Array.isArray(parsed.references) ||
+        !Array.isArray(parsed.changelog)
+      ) {
+        throw new Error('Invalid ByteDoc JSON file');
+      }
+
+      const now = Date.now();
+      const documentId = uuid();
+      const sectionIdMap = new Map<string, string>();
+      const title = parsed.document.title?.trim() || 'Imported Document';
+      const document: ByteDocument = {
+        ...parsed.document,
+        id: documentId,
+        title,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const sections = parsed.sections.map((section) => {
+        const id = uuid();
+        sectionIdMap.set(section.id, id);
+        return { ...section, id, documentId, createdAt: now, updatedAt: now };
+      });
+      const remappedSections = sections.map((section) => ({
+        ...section,
+        parentId: section.parentId ? sectionIdMap.get(section.parentId) ?? null : null,
+      }));
+
+      const references = parsed.references.map((reference, order) => ({
+        ...reference,
+        id: uuid(),
+        documentId,
+        order,
+        createdAt: now,
+      }));
+
+      const changelog = parsed.changelog.map((entry, order) => ({
+        ...entry,
+        id: uuid(),
+        documentId,
+        order,
+      }));
+
+      const footnotes = (parsed.footnotes ?? []).map((footnote, order) => ({
+        ...footnote,
+        id: uuid(),
+        documentId,
+        sectionId: sectionIdMap.get(footnote.sectionId) ?? remappedSections[0]?.id ?? '',
+        order,
+      })).filter((footnote) => footnote.sectionId);
+
+      await db.transaction('rw', [db.documents, db.sections, db.references, db.changelog, db.footnotes], async () => {
+        await db.documents.add(document);
+        if (remappedSections.length) await db.sections.bulkAdd(remappedSections);
+        if (references.length) await db.references.bulkAdd(references);
+        if (changelog.length) await db.changelog.bulkAdd(changelog);
+        if (footnotes.length) await db.footnotes.bulkAdd(footnotes);
+      });
+
+      const docs = await db.documents.orderBy('updatedAt').reverse().toArray();
+      set({ documents: docs });
+      await get().openDocument(documentId);
+      return documentId;
+    },
+
     addSection: async (title: string, parentId?: SectionId | null) => {
       const { activeDocumentId, sections } = get();
       if (!activeDocumentId) throw new Error('No active document');
@@ -198,13 +311,15 @@ export const useDocumentStore = create<DocumentState>()(
     },
 
     updateSectionContent: async (id: SectionId, content: JSONContent) => {
-      const { sections } = get();
+      const { sections, sectionTree } = get();
       const section = sections.find((s) => s.id === id);
       if (!section) return;
       const updated = { ...section, content, updatedAt: Date.now() };
       await db.sections.put(updated);
       const newSections = sections.map((s) => (s.id === id ? updated : s));
-      set({ sections: newSections, ...recomputeDerived(newSections) });
+      const sectionById = new Map(newSections.map((s) => [s.id, s]));
+      const { figures, tables } = extractCaptionsFromTree(sectionTree, sectionById);
+      set({ sections: newSections, figures, tables });
     },
 
     deleteSection: async (id: SectionId) => {

@@ -4,6 +4,17 @@ All notable changes to ByteDoc are documented here.
 
 ---
 
+## [0.0.12] — 2026-04-26
+
+### Changed
+
+- Lazy-loaded the DOCX export modal so export dependencies are split out of the initial app bundle
+- Reused computed section trees when deriving section numbers, figures, and tables instead of rebuilding the same tree multiple times
+- Kept editor content saves from invalidating section tree and numbering state when only caption data needs to refresh
+- Memoized sidebar and table-of-contents flattening, and replaced repeated section ancestor scans with indexed lookups
+
+---
+
 ## [0.0.11] — 2026-04-26
 
 ### Fixed

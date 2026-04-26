@@ -1,5 +1,5 @@
 // src/editor/EditorArea.tsx
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import { Bold, Italic, Underline, Link2, Link2Off } from 'lucide-react';
 import { buildExtensions } from './extensions';
@@ -31,6 +31,7 @@ export function EditorArea({ sectionId }: EditorAreaProps) {
   const section = useDocumentStore((s) => s.sections.find((sec) => sec.id === sectionId));
   const updateTitle = useDocumentStore((s) => s.updateSectionTitle);
   const updateContent = useDocumentStore((s) => s.updateSectionContent);
+  const extensions = useMemo(() => buildExtensions(), []);
 
   const saveContent = useDebouncedCallback(
     (id: string, content: JSONContent) => updateContent(id, content),
@@ -38,7 +39,7 @@ export function EditorArea({ sectionId }: EditorAreaProps) {
   );
 
   const editor = useEditor({
-    extensions: buildExtensions(),
+    extensions,
     content: section?.content ?? { type: 'doc', content: [{ type: 'paragraph' }] },
     editorProps: {
       attributes: {

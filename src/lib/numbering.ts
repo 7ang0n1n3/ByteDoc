@@ -11,8 +11,9 @@ export function buildSectionTree(sections: Section[]): SectionNode[] {
   const childMap = new Map<string | null, Section[]>();
   for (const s of sections) {
     const key = s.parentId ?? null;
-    if (!childMap.has(key)) childMap.set(key, []);
-    childMap.get(key)!.push(s);
+    const children = childMap.get(key);
+    if (children) children.push(s);
+    else childMap.set(key, [s]);
   }
   // Sort each group by order
   for (const kids of childMap.values()) {
@@ -38,17 +39,26 @@ export function buildSectionTree(sections: Section[]): SectionNode[] {
 /** Flatten a section tree into a depth-first ordered list. */
 export function flattenTree(nodes: SectionNode[]): SectionNode[] {
   const result: SectionNode[] = [];
-  function visit(node: SectionNode) {
+  const stack = [...nodes].reverse();
+
+  while (stack.length > 0) {
+    const node = stack.pop()!;
     result.push(node);
-    node.children.forEach(visit);
+    for (let i = node.children.length - 1; i >= 0; i--) {
+      stack.push(node.children[i]);
+    }
   }
-  nodes.forEach(visit);
+
   return result;
 }
 
 /** Build a map of sectionId → number string. */
 export function buildNumberMap(sections: Section[]): Map<string, string> {
-  const tree = buildSectionTree(sections);
+  return buildNumberMapFromTree(buildSectionTree(sections));
+}
+
+/** Build a map of sectionId → number string from an existing tree. */
+export function buildNumberMapFromTree(tree: SectionNode[]): Map<string, string> {
   const flat = flattenTree(tree);
   const map = new Map<string, string>();
   for (const node of flat) {
@@ -62,8 +72,16 @@ export function extractCaptions(
   sections: Section[],
   sectionNumberMap: Map<string, string>
 ): { figures: CaptionEntry[]; tables: CaptionEntry[] } {
-  const tree = buildSectionTree(sections);
-  const flat = flattenTree(tree);
+  void sectionNumberMap;
+  return extractCaptionsFromTree(buildSectionTree(sections));
+}
+
+/** Extract figure and table captions from an existing section tree. */
+export function extractCaptionsFromTree(
+  sectionTree: SectionNode[],
+  sectionById?: Map<string, Section>
+): { figures: CaptionEntry[]; tables: CaptionEntry[] } {
+  const flat = flattenTree(sectionTree);
 
   const figures: CaptionEntry[] = [];
   const tables: CaptionEntry[] = [];
@@ -71,7 +89,8 @@ export function extractCaptions(
   let tblCount = 0;
 
   for (const node of flat) {
-    scanContent(node.section.content, node.section.id);
+    const section = sectionById?.get(node.section.id) ?? node.section;
+    scanContent(section.content, section.id);
   }
 
   function scanContent(content: JSONContent | undefined, sectionId: string) {

@@ -1,5 +1,5 @@
 // src/components/layout/AppShell.tsx
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import {
   PanelLeft, List, BookOpen, Clock, ImageIcon, Menu, Sun, Moon,
 } from 'lucide-react';
@@ -10,7 +10,6 @@ import { ReferencePanel } from '../references/ReferencePanel';
 import { ChangelogPanel } from '../changelog/ChangelogPanel';
 import { FiguresPanel } from '../figures/FiguresPanel';
 import { DocumentSettingsModal } from '../modals/DocumentSettingsModal';
-import { ExportModal } from '../modals/ExportModal';
 import { ReferenceModal } from '../modals/ReferenceModal';
 import { TemplateSettingsModal } from '../modals/TemplateSettingsModal';
 import { DocumentTransferActions } from '../document/DocumentTransferActions';
@@ -24,6 +23,10 @@ const PANELS = [
   { id: 'changelog',  label: 'Changelog',  Icon: Clock     },
   { id: 'figures',    label: 'Figures',    Icon: ImageIcon },
 ] as const;
+
+const ExportModal = React.lazy(() =>
+  import('../modals/ExportModal').then((module) => ({ default: module.ExportModal }))
+);
 
 export function AppShell() {
   const activeDocument = useDocumentStore((s) => s.activeDocument);
@@ -156,7 +159,11 @@ export function AppShell() {
 
       {/* Modals */}
       {activeModal === 'docSettings'      && <DocumentSettingsModal />}
-      {activeModal === 'export'           && <ExportModal />}
+      {activeModal === 'export'           && (
+        <Suspense fallback={null}>
+          <ExportModal />
+        </Suspense>
+      )}
       {activeModal === 'templateSettings' && <TemplateSettingsModal />}
       {(activeModal === 'addRef' || activeModal === 'editRef') && <ReferenceModal />}
 

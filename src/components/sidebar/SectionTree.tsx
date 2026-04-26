@@ -1,5 +1,5 @@
 // src/components/sidebar/SectionTree.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -43,27 +43,32 @@ export function SectionTree() {
   );
 
   // Full DFS list
-  const allNodes = flattenTree(sectionTree);
+  const allNodes = useMemo(() => flattenTree(sectionTree), [sectionTree]);
+  const nodeById = useMemo(() => new Map(allNodes.map((node) => [node.section.id, node])), [allNodes]);
 
   // Filter out nodes whose ancestor is collapsed
-  const visibleNodes = allNodes.filter((node) => {
-    let parentId = node.section.parentId;
-    while (parentId) {
-      if (collapsed.has(parentId)) return false;
-      const parent = allNodes.find((n) => n.section.id === parentId);
-      parentId = parent?.section.parentId ?? null;
-    }
-    return true;
-  });
+  const visibleNodes = useMemo(
+    () =>
+      allNodes.filter((node) => {
+        let parentId = node.section.parentId;
+        while (parentId) {
+          if (collapsed.has(parentId)) return false;
+          const parent = nodeById.get(parentId);
+          parentId = parent?.section.parentId ?? null;
+        }
+        return true;
+      }),
+    [allNodes, collapsed, nodeById]
+  );
 
-  const sortableIds = visibleNodes.map((n) => n.section.id);
+  const sortableIds = useMemo(() => visibleNodes.map((n) => n.section.id), [visibleNodes]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const activeNode = allNodes.find((n) => n.section.id === active.id);
-    const overNode = allNodes.find((n) => n.section.id === over.id);
+    const activeNode = nodeById.get(String(active.id));
+    const overNode = nodeById.get(String(over.id));
     if (!activeNode || !overNode) return;
 
     const targetParentId = overNode.section.parentId;

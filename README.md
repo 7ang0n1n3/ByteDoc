@@ -4,7 +4,7 @@
 
 # ByteDoc
 
-**Version 0.0.11**
+**Version 0.0.12**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 
@@ -66,6 +66,11 @@ ByteDoc is designed for engineers and technical writers who need to produce poli
 - **Import / export access from the empty state** — JSON import remains available before any documents exist, while JSON and DOCX export actions stay visible but disabled until a document is active
 - **Context-aware table toolbar** — table row/column, header, colour, and line controls appear only while editing inside a table
 - **Offline-first** — all documents, sections, references, changelog entries, and templates are stored in IndexedDB via Dexie; nothing leaves the browser
+
+### Performance
+- **Lean initial load** — DOCX export code is lazy-loaded with the export modal, reducing the initial JavaScript chunk
+- **Scalable section navigation** — section tree, table of contents, and caption-derived state avoid redundant tree rebuilds during editor saves
+- **Lower render overhead** — section sidebar and TOC flattening are memoized, and section ancestor lookups use indexed maps instead of repeated linear scans
 
 ---
 

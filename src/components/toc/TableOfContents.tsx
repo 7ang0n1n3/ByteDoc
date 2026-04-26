@@ -1,5 +1,5 @@
 // src/components/toc/TableOfContents.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useDocumentStore } from '../../store/documentStore';
 import { flattenTree } from '../../lib/numbering';
 
@@ -8,7 +8,7 @@ export function TableOfContents() {
   const activeSectionId = useDocumentStore((s) => s.activeSectionId);
   const selectSection = useDocumentStore((s) => s.selectSection);
 
-  const flatNodes = flattenTree(sectionTree);
+  const flatNodes = useMemo(() => flattenTree(sectionTree), [sectionTree]);
 
   if (flatNodes.length === 0) {
     return <p className="text-xs text-zinc-600 px-3 py-2">No sections yet</p>;
