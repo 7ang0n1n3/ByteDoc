@@ -4,7 +4,7 @@
 
 # ByteDoc
 
-**Version 0.0.12**
+**Version 0.0.13**
 
 An offline-first technical document editor for writing structured, multi-section documents with professional DOCX export. All data is stored locally in the browser — no server, no account, no internet connection required.
 
@@ -263,3 +263,10 @@ All data lives in IndexedDB under the `ByteDocDB` database (Dexie schema v2).
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+<!-- release-execute:start -->
+## Current Release
+
+- Version: `0.0.13`
+- Date: `2026-05-02`
+<!-- release-execute:end -->

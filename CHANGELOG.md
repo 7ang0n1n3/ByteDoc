@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.0.13 - 2026-05-02
+
+- Release 0.0.12 performance improvements
+- Improve color picker and DOCX color export
+- Show document transfer actions in empty state
+- Redesign toolbar and bump version
+- Release 0.0.7 editor table controls
+- Updated ignore
+- Bump version to 0.0.5
+- Add ByteDoc logo to app and README
+- Feat: double-click doc name in sidebar opens its settings modal
+- Chore: bump version to 0.0.3
+- Feat: add one blank line after section headings and TOC header on export
+- Fix: remove blank page between title and next page on export
+- Feat: each section starts on a new page on export
+- Docs: update license to MIT in README
+- Merge: bring in LICENSE from remote
+- Feat: initial release v0.0.2
+- Initial commit
+
 All notable changes to ByteDoc are documented here.
 
 ---
